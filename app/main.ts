@@ -9,7 +9,13 @@ const RedisCommands = {
   PX: "PX",
 } as const;
 
-const RedisSet = new Map();
+type keyValueStore = {
+  [key: string]: {
+    expiration?: Date;
+    value: string;
+  };
+};
+const kvStore: keyValueStore = {};
 const server: net.Server = net.createServer((connection: net.Socket) => {
 
   connection.on("data", (input: Buffer) => {
@@ -32,23 +38,32 @@ const commandHandler = (commands: string[], connection: net.Socket) => {
 
   if(command.toUpperCase() === RedisCommands.SET) {
     const key = commands[1];
-    RedisSet.set(key,commands[2]);
+    kvStore[key] = { value:commands[2] }
+    
     if(commands.length > 3 && commands[3].toUpperCase() === RedisCommands.PX){
-      const expiry = +commands[4];
-      console.log({expiry});
-      setTimeout(() => RedisSet.delete(key),expiry);
+      const durationInMs = parseInt(commands[4], 10);
+      const date = new Date();
+      date.setMilliseconds(date.getMilliseconds() + durationInMs);
+      kvStore[key].expiration = date;
+      
     }
     connection.write(respSimpleString("OK"));
   }
 
   if(command.toUpperCase() === RedisCommands.GET) {
-    console.log(commands[1]);
-    const value = RedisSet.get(commands[1]);
-    console.log({value});
-    if(!value) {
-      connection.write(respNull);  
+    if (!Object.hasOwn(kvStore, commands[1])) {
+      connection.write(respNull);
+      return;
     }
-    connection.write(respBulkString(value));
+    const entry = kvStore[commands[1]];
+    const now = new Date();
+    if ((entry.expiration ?? now) < now) {
+      delete kvStore[commands[1]];
+      connection.write(respNull);
+      return;
+    }
+    
+    connection.write(respBulkString(entry.value));
   }
 
 } 
