@@ -13,17 +13,17 @@ type RedisConfig = {
 
 const RedisConfig: RedisConfig = {
   port: 6379,
-  role: ""
+  role: "master"
 }
 
-for (let index = 0; index < Bun.argv.length; index++) {
-  const element = Bun.argv[index];
+for (let i = 0; i < Bun.argv.length; i++) {
+  const element = Bun.argv[i];
   switch (element) {
     case "--port":
-      RedisConfig.port = Number(Bun.argv[index + 1])
+      RedisConfig.port = Number(Bun.argv[i + 1])
       break;
     case "--replicaof":
-      const [masterHost, masterPort] = Bun.argv[index + 1].split(" ");
+      const [masterHost, masterPort] = Bun.argv[i + 1].split(" ");
       RedisConfig.role = "slave"
       RedisConfig.master = {
         host: masterHost,
