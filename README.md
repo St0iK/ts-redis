@@ -1,4 +1,4 @@
-# Build your own Redis with TypeScript
+# Simple Redis implementation with Typescript
 
 ## Project Overview
 
