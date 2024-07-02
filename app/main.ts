@@ -2,11 +2,46 @@ import * as net from "net";
 
 console.log("Redis server booted... 🚀");
 
+type RedisConfig = {
+  port: number
+  role: string
+  master?: {
+    host: string
+    port: number
+  }
+}
+
+const RedisConfig: RedisConfig = {
+  port: 6379,
+  role: ""
+}
+
+for (let index = 0; index < Bun.argv.length; index++) {
+  const element = Bun.argv[index];
+  switch (element) {
+    case "--port":
+      RedisConfig.port = Number(Bun.argv[index + 1])
+      break;
+    case "--replicaof":
+      const [masterHost, masterPort] = Bun.argv[index + 1].split(" ");
+      RedisConfig.role = "slave"
+      RedisConfig.master = {
+        host: masterHost,
+        port: Number(masterPort)
+      }
+      break;
+  
+    default:
+      break;
+  }
+}
+ 
 const RedisCommands = {
   ECHO: "ECHO",
   SET: "SET",
   GET: "GET",
   PX: "PX",
+  INFO: "INFO",
 } as const;
 
 type keyValueStore = {
@@ -30,13 +65,13 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
 });
 
 const commandHandler = (commands: string[], connection: net.Socket) => {
-  const command = commands[0];
+  const command = commands[0].toUpperCase();
 
-  if(command.toUpperCase() === RedisCommands.ECHO) {
+  if(command === RedisCommands.ECHO) {
     connection.write(respSimpleString(commands[1]));
   }
 
-  if(command.toUpperCase() === RedisCommands.SET) {
+  if(command === RedisCommands.SET) {
     const key = commands[1];
     kvStore[key] = { value:commands[2] }
     
@@ -50,7 +85,7 @@ const commandHandler = (commands: string[], connection: net.Socket) => {
     connection.write(respSimpleString("OK"));
   }
 
-  if(command.toUpperCase() === RedisCommands.GET) {
+  if(command === RedisCommands.GET) {
     if (!Object.hasOwn(kvStore, commands[1])) {
       connection.write(respNull);
       return;
@@ -66,6 +101,14 @@ const commandHandler = (commands: string[], connection: net.Socket) => {
     connection.write(respBulkString(entry.value));
   }
 
+  if(command === RedisCommands.INFO) {
+    if(commands[1] === "replication") {
+      connection.write(respBulkString(`role:${RedisConfig.role}`));
+      return;
+    }
+    connection.write(respNull);
+    return;
+  }
 } 
 
 const commandParser = (input: Buffer): string[] => {
@@ -105,9 +148,8 @@ const commandParser = (input: Buffer): string[] => {
   return commands;
 }
 
-
 const respSimpleString = (data: string) => `+${data}\r\n`
 const respBulkString = (data: string) => `$${data.length}\r\n${data}\r\n`
 const respNull = `$-1\r\n`;
 
-server.listen(6379, "127.0.0.1");
+server.listen(RedisConfig.port, "127.0.0.1");
