@@ -28,3 +28,26 @@ OK
 > GET key1
 (null)
 ```
+
+
+```
+/src
+  /commands
+    - commandHandler.ts
+    - commandParser.ts
+    - commands.ts
+  /config
+    - config.ts
+  /helpers
+    - encoding.ts
+    - generateReplID.ts
+  /network
+    - server.ts
+    - replicaHandshake.ts
+  /types
+    - index.ts
+  /store
+    - kvStore.ts
+  index.ts
+
+```
