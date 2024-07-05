@@ -1,8 +1,10 @@
+
 import * as net from "net";
-import { config } from "../config/config";
-import { kvStore } from "../store/kvStore";
-import { RedisCommands } from "./commands";
 import { respSimpleString, respBulkString, respNull, encodeArray } from "../helpers/encoding";
+import { kvStore } from "../../store/kvStore";
+import { config } from "../config";
+import { RedisCommands } from ".";
+
 
 export const handleSetCommand = (commands: string[], connection: net.Socket) => {
   const key = commands[1];
@@ -52,8 +54,17 @@ export const handlePSyncCommand = (connection: net.Socket) => {
     "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==",
     "base64"
   );
-  connection.write(`\$${emptyRDB.length}\r\n`);
+  connection.write(`$${emptyRDB.length}\r\n`);
   connection.write(emptyRDB);
 
   config.replicas.push({ connection, offset: 0, active: true });
+};
+
+const propagateToReplicas = (commands: string[]) => {
+  config.replicas = config.replicas.filter((r) => r.active);
+  for (const replica of config.replicas) {
+    const data = encodeArray(commands);
+    replica.connection.write(data);
+    replica.offset += data.length;
+  }
 };

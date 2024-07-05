@@ -1,7 +1,6 @@
 import * as net from "net";
-import { RedisCommands } from "./commands";
-import { respSimpleString, respBulkString, respNull } from "../helpers/encoding";
-import { handleSetCommand, handleGetCommand, handleInfoCommand, handlePSyncCommand } from "./commandHandlers";
+import { respSimpleString, respNull } from "../helpers/encoding";
+import { handleGetCommand, handleInfoCommand, handlePSyncCommand, handleSetCommand } from "./handlers";
 
 export const RedisCommands = {
   PING: "PING",

@@ -159,14 +159,7 @@ const handlePSyncCommand = (connection: net.Socket) => {
   config.replicas.push({ connection, offset: 0, active: true });
 };
 
-const propagateToReplicas = (commands: string[]) => {
-  config.replicas = config.replicas.filter((r) => r.active);
-  for (const replica of config.replicas) {
-    const data = encodeArray(commands);
-    replica.connection.write(data);
-    replica.offset += data.length;
-  }
-};
+
 
 // Command Parser
 const commandParser = (input: Buffer): string[] => {

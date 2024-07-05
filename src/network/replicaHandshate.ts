@@ -1,8 +1,8 @@
 import * as net from "net";
 import { RedisInstanceConfig } from "../types";
 import { encodeArray } from "../helpers/encoding";
-import { commandHandler } from "../commands/commandHandler";
-import { commandParser } from "../commands/commandParser";
+import { commandHandler } from "../command";
+import { commandParser } from "../command/parser";
 
 export const replicaHandshake = (config: RedisInstanceConfig): void => {
   if (!config.master) return;
@@ -12,6 +12,7 @@ export const replicaHandshake = (config: RedisInstanceConfig): void => {
 
   let stage = 0;
   const onData = (input: Buffer) => {
+    console.log(input.toString());
     if (stage === 0) {
       connection.write(encodeArray(["REPLCONF", "listening-port", config.port.toString()]));
       stage = 1;

@@ -1,6 +1,8 @@
-import { config, handleCommandLineArgs } from "./config/config";
+
+import { config, handleCommandLineArgs } from "./config";
+import { replicaHandshake } from "./network/replicaHandshate";
 import { server } from "./network/server";
-import { replicaHandshake } from "./network/replicaHandshake";
+
 
 console.log("Redis server booted... 🚀");
 

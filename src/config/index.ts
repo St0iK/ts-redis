@@ -1,4 +1,4 @@
-import { RedisInstanceConfig } from "../types";
+import { RedisInstanceConfig } from "../../types";
 import { generateReplID } from "../helpers/generateReplID";
 
 export const config: RedisInstanceConfig = {
@@ -17,6 +17,7 @@ export const handleCommandLineArgs = (argv: string[], config: RedisInstanceConfi
         config.port = Number(argv[i + 1]);
         break;
       case "--replicaof":
+        // eslint-disable-next-line no-case-declarations
         const [masterHost, masterPort] = argv[i + 1].split(" ");
         config.role = "slave";
         config.master = { host: masterHost, port: Number(masterPort) };
