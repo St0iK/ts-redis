@@ -16,7 +16,7 @@ export const RedisCommands = {
 
 export const commandHandler = (commands: string[], connection: net.Socket) => {
   const command = commands[0]?.toUpperCase();
-
+  console.log({ command });
   switch (command) {
     case RedisCommands.PING:
       connection.write(respSimpleString("PONG"));
